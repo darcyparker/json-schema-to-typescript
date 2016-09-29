@@ -1,8 +1,11 @@
 import { EnumJSONSchema, JSONSchema, NamedEnumJSONSchema } from './JSONSchema'
 import * as TsType from './TsTypes'
+import * as Ajv from 'ajv'
 import { readFile, readFileSync } from 'fs'
 import { get, isPlainObject, last, map, merge, zip } from 'lodash'
 import { join, parse, ParsedPath, resolve } from 'path'
+
+const validate: Ajv.ValidateFunction = require('./jsonSchemaValidator')
 
 enum RuleType {
   Any, TypedArray, Enum, AllOf, AnyOf, Reference, NamedSchema, AnonymousSchema,
@@ -17,6 +20,7 @@ export interface Settings {
   endTypeWithSemicolon?: boolean
   useConstEnums?: boolean
   useFullReferencePathAsName?: boolean
+  validateSourceSchema?: boolean
 }
 
 class Compiler {
@@ -26,7 +30,8 @@ class Compiler {
     endPropertyWithSemicolon: true,
     endTypeWithSemicolon: true,
     useConstEnums: true,
-    useFullReferencePathAsName: false
+    useFullReferencePathAsName: false,
+    validateSourceSchema: true // TODO: Change this to false when finished with implementation
   }
 
   static DEFAULT_SCHEMA: JSONSchema = {
@@ -47,6 +52,20 @@ class Compiler {
     this.id = schema.id || schema.title || this.filePath.name || 'Interface1'
     this.settings = Object.assign({}, Compiler.DEFAULT_SETTINGS, settings)
     this.declareType(this.toTsType(this.schema, '', true) as TsType.Interface, this.id, this.id)
+
+    // WIP: Validate schema to be transformed to typescript interface definition
+    // because if there is a problem with the input schema, I want to know and avoid
+    // the risk of wasting time looking for issues in json-schema-typescript
+    // Currently there is a question here: https://github.com/jessedc/ajv-cli/issues/20
+    // that is blocking me...
+    if (this.settings.validateSourceSchema) {
+      delete validate.errors // important, delete errors from previous call to validate
+      console.log(JSON.stringify(this.schema) + '\n\n')
+      if (validate(this.schema)) {
+        console.log(`\nErrors:\n ${JSON.stringify(validate.errors)}`)
+        throw new Error('Invalid JSON Schema')
+      }
+    }
   }
 
   toString(): string {
