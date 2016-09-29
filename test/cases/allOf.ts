@@ -2,14 +2,33 @@ export var schema = {
   "title": "AllOf",
   "type": "object",
   "properties": {
-    "foo": {
+    "fooAndBar": {
       "type": "object",
       "allOf": [
         {"$ref": "#/definitions/foo"},
         {"$ref": "#/definitions/bar"}
       ]
+    },
+    "foo": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/foo"}
+      ]
     }
   },
+  "allOf": [{
+    "title": "AnotherAllOf",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "more": {
+        "type": "object",
+        "allOf": [
+          {"$ref": "#/definitions/bar"}
+        ]
+      }
+    }
+  }],
   "definitions": {
     "foo": {
       "properties": {
@@ -27,7 +46,7 @@ export var schema = {
       "required": ["a", "b"]
     }
   },
-  "required": ["foo", "bar"],
+  "required": ["fooAndBar", "foo", "more"],
   "additionalProperties": false
 }
 
@@ -39,5 +58,7 @@ export interface Bar {
   a: string;
 }
 export interface AllOf {
-  foo: Foo & Bar;
+  fooAndBar: Foo & Bar;
+  foo: Foo;
+  more: Bar;
 }`
