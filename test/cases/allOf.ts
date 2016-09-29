@@ -5,26 +5,26 @@ export var schema = {
     "fooAndBar": {
       "type": "object",
       "allOf": [
-        {"$ref": "#/definitions/foo"},
-        {"$ref": "#/definitions/bar"}
+        { "$ref": "#/definitions/foo" },
+        { "$ref": "#/definitions/bar" }
       ]
     },
     "foo": {
       "type": "object",
       "allOf": [
-        {"$ref": "#/definitions/foo"}
+        { "$ref": "#/definitions/foo" }
       ]
     }
   },
   "allOf": [{
     "title": "AnotherAllOf",
     "type": "object",
-    "additionalProperties": false,
+    "additionalProperties": true,
     "properties": {
       "more": {
         "type": "object",
         "allOf": [
-          {"$ref": "#/definitions/bar"}
+          { "$ref": "#/definitions/bar" }
         ]
       }
     }
@@ -35,19 +35,19 @@ export var schema = {
         "a": { "type": "string" },
         "b": { "type": "integer" }
       },
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": ["a", "b"]
     },
     "bar": {
       "properties": {
         "a": { "type": "string" }
       },
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": ["a", "b"]
     }
   },
-  "required": ["fooAndBar", "foo", "more"],
-  "additionalProperties": false
+  "required": ["fooAndBar", "foo", "AnotherAllOf"],
+  "additionalProperties": true
 }
 
 export var types = `export interface Foo {
@@ -60,5 +60,7 @@ export interface Bar {
 export interface AllOf {
   fooAndBar: Foo & Bar;
   foo: Foo;
-  more: Bar;
+  AnotherAllOf: {
+    more?: Bar;
+  };
 }`
